@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kai's Monopoly Ledger</title>
+    <style>
+        :root {
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --primary: #2e7d32;
+            --accent: #d32f2f;
+            --text: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 { color: var(--primary); margin-bottom: 10px; }
+        p.subtitle { margin-bottom: 20px; font-style: italic; color: #666; }
+
+        .setup-area {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"], input[type="number"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            flex-grow: 1;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+
+        .btn-add { background-color: var(--primary); color: white; }
+        .btn-action { background-color: #eee; color: var(--text); }
+        .btn-danger { background-color: var(--accent); color: white; }
+        button:hover { opacity: 0.8; }
+
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .player-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-top: 8px solid var(--primary);
+        }
+
+        .player-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .balance {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        .money-controls {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .property-section {
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+
+        .property-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .property-tag {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: #eee;
+            border: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+        }
+
+        /* Property Colors */
+        .color-brown { border-left: 5px solid #955436; }
+        .color-lightblue { border-left: 5px solid #aae0fa; }
+        .color-pink { border-left: 5px solid #d93a96; }
+        .color-orange { border-left: 5px solid #f7941d; }
+        .color-red { border-left: 5px solid #ed1b24; }
+        .color-yellow { border-left: 5px solid #fef200; }
+        .color-green { border-left: 5px solid #1fb25a; }
+        .color-darkblue { border-left: 5px solid #0072bb; }
+        .color-railroad { border-left: 5px solid #000000; }
+        .color-utility { border-left: 5px solid #ced4da; }
+
+    </style>
+</head>
+<body>
+
+    <h1>Kai's Monopoly Ledger</h1>
+    <p class="subtitle">Because math is hard and paper money is for the 20th century.</p>
+
+    <div class="setup-area">
+        <input type="text" id="playerName" placeholder="Enter Player Name...">
+        <button class="btn-add" onclick="addPlayer()">Add Player</button>
+    </div>
+
+    <div id="playersGrid" class="players-grid">
+        <!-- Players appear here -->
+    </div>
+
+    <script>
+        let players = [];
+        const properties = [
+            { name: "Mediterranean Avenue", group: "brown" },
+            { name: "Baltic Avenue", group: "brown" },
+            { name: "Reading Railroad", group: "railroad" },
+            { name: "Oriental Avenue", group: "lightblue" },
+            { name: "Vermont Avenue", group: "lightblue" },
+            { name: "Connecticut Avenue", group: "lightblue" },
+            { name: "St. Charles Place", group: "pink" },
+            { name: "Electric Company", group: "utility" },
+            { name: "States Avenue", group: "pink" },
+            { name: "Virginia Avenue", group: "pink" },
+            { name: "Pennsylvania Railroad", group: "railroad" },
+            { name: "St. James Place", group: "orange" },
+            { name: "Tennessee Avenue", group: "orange" },
+            { name: "New York Avenue", group: "orange" },
+            { name: "Kentucky Avenue", group: "red" },
+            { name: "Indiana Avenue", group: "red" },
+            { name: "Illinois Avenue", group: "red" },
+            { name: "B. & O. Railroad", group: "railroad" },
+            { name: "Atlantic Avenue", group: "yellow" },
+            { name: "Ventnor Avenue", group: "yellow" },
+            { name: "Water Works", group: "utility" },
+            { name: "Marvin Gardens", group: "yellow" },
+            { name: "Pacific Avenue", group: "green" },
+            { name: "North Carolina Avenue", group: "green" },
+            { name: "Pennsylvania Avenue", group: "green" },
+            { name: "Short Line Railroad", group: "railroad" },
+            { name: "Park Place", group: "darkblue" },
+            { name: "Boardwalk", group: "darkblue" }
+        ];
+
+        function addPlayer() {
+            const nameInput = document.getElementById('playerName');
+            const name = nameInput.value.trim();
+            if (!name) return;
+
+            players.push({
+                name: name,
+                balance: 1500,
+                properties: []
+            });
+
+            nameInput.value = '';
+            render();
+        }
+
+        function updateMoney(index, amount) {
+            players[index].balance += amount;
+            render();
+        }
+
+        function customMoney(index) {
+            const val = prompt("Enter amount (use negative to decrease):");
+            const num = parseInt(val);
+            if (!isNaN(num)) {
+                players[index].balance += num;
+                render();
+            }
+        }
+
+        function buyProperty(playerIndex, propertyName) {
+            if (!propertyName) return;
+            const propIndex = properties.findIndex(p => p.name === propertyName);
+            const prop = properties[propIndex];
+            
+            players[playerIndex].properties.push(prop);
+            // Remove from available list for this session (optional logic)
+            // properties.splice(propIndex, 1); 
+            render();
+        }
+
+        function removeProperty(playerIndex, propIndex) {
+            players[playerIndex].properties.splice(propIndex, 1);
+            render();
+        }
+
+        function render() {
+            const grid = document.getElementById('playersGrid');
+            grid.innerHTML = '';
+
+            players.forEach((player, index) => {
+                const card = document.createElement('div');
+                card.className = 'player-card';
+                
+                card.innerHTML = `
+                    <div class="player-header">
+                        <h2>${player.name}</h2>
+                        <div class="balance">$${player.balance}</div>
+                    </div>
+                    
+                    <div class="money-controls">
+                        <button class="btn-action" onclick="updateMoney(${index}, 200)">+GO ($200)</button>
+                        <button class="btn-action" onclick="updateMoney(${index}, -50)">-$50</button>
+                        <button class="btn-action" onclick="customMoney(${index})">Custom</button>
+                    </div>
+
+                    <div class="property-section">
+                        <strong>Properties:</strong>
+                        <select onchange="buyProperty(${index}, this.value)">
+                            <option value="">-- Buy Property --</option>
+                            ${properties.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
+                        </select>
+                        <div class="property-list">
+                            ${player.properties.map((p, pIdx) => `
+                                <div class="property-tag color-${p.group}">
+                                    ${p.name} 
+                                    <span style="cursor:pointer; color:red;" onclick="removeProperty(${index}, ${pIdx})">×</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
